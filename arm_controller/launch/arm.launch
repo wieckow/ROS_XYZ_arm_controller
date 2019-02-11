@@ -1,0 +1,85 @@
+<launch>
+    <arg name="port" default="/dev/ttyUSB0"/>
+    
+    <remap from="/User_interface/arm_command_frame" to="/AVR_communication/arm_command_frame"/>
+    <remap from="/User_interface/arm_return_frame" to="/AVR_communication/arm_return_frame"/>
+    <remap from="/Position_control/arm_command_frame" to="/AVR_communication/arm_command_frame"/> 
+    <remap from="/Position_control/arm_return_frame" to="/AVR_communication/arm_return_frame"/>
+
+    <remap from="/AVR_communication/arm_command" to="/AVR_communication/arm_command_packed"/> 
+    <remap from="/AVR_communication/arm_return" to="/AVR_communication/arm_return_packed"/>
+
+    <remap from="/User_interface/setpoint_cart" to="/Position_control/setpoint_cart"/>
+    <remap from="/User_interface/setpoint_joint" to="/Position_control/setpoint_joint"/>
+    <remap from="/User_interface/currpos_cart" to="/Position_control/currpos_cart"/>
+    <remap from="/User_interface/currpos_joint" to="/Position_control/currpos_joint"/>
+
+
+    <node 
+    pkg="rosserial_python" 
+    type="serial_node.py" 
+    name="serial" 
+    ns="AVR_communication" 
+    respawn="true"
+    args="$(arg port)">
+    </node>
+
+    <node 
+    pkg="arm_controller" 
+    type="frame_control_node.py" 
+    name="frame_control" 
+    ns="AVR_communication" 
+    respawn="true">
+    </node>    
+
+    <node 
+    pkg="arm_controller" 
+    type="monitor_node.py" 
+    name="frame_monitor" 
+    ns="User_interface" 
+    respawn="true">
+    </node>
+
+    <node 
+    pkg="arm_controller" 
+    type="workspace_limiter.py" 
+    name="workspace_limiter" 
+    ns="Position_control" 
+    respawn="true">
+    </node>
+
+    <node 
+    pkg="arm_controller" 
+    type="interface_node.py" 
+    name="interface" 
+    ns="User_interface" 
+    required="true"
+    output="screen"
+    cwd='node'> 
+    </node>   
+
+    <node 
+    pkg="arm_controller" 
+    type="pos_manager.py" 
+    name="position_translator" 
+    ns="Position_control" 
+    required="true"> 
+    </node>
+
+    <node 
+    pkg="arm_controller" 
+    type="forward_kinematics.py" 
+    name="forward_kinematics" 
+    ns="Position_control" 
+    respawn="true">  
+    </node>  
+    
+    <node 
+    pkg="arm_controller" 
+    type="inverse_kinematics.py" 
+    name="inverse_kinematics" 
+    ns="Position_control" 
+    output="screen"
+    respawn="true">
+    </node>
+</launch>
